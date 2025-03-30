@@ -43,14 +43,17 @@ void uarts_init() {
 
 void uart_enable(uint32_t uartno) {
   struct uart*uart = &uarts[uartno];
-  // nothing to do here, as long as
-  // we do not rely on interrupts
+  
+  //enable RX interrupt
+  mmio_write32(uart->bar,0x038,UART_FR_REMPTY);
+
 }
 
 void uart_disable(uint32_t uartno) {
   struct uart*uart = &uarts[uartno];
-  // nothing to do here, as long as
-  // we do not rely on interrupts
+  
+  //disable RX interrupt
+  mmio_write32(uart->bar,0x044, UART_FR_REMPTY);
 }
 
 void uart_receive(uint8_t uartno, char *pt) {

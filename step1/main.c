@@ -24,9 +24,15 @@ void check_stacks() {
   if (addr >= memsize)
     panic();
 
-  /*addr = &irq_stack_top;
+  addr = &irq_stack_top;
   if (addr >= memsize)
-    panic();*/
+    panic();
+}
+
+void echo(uint32_t i,void* c)
+{
+  uart_receive(UART0, (char*)c);
+  uart_send(UART0, *((char*)c));
 }
 
 /**
@@ -39,10 +45,15 @@ void _start(void) {
   check_stacks();
   uarts_init();
   uart_enable(UART0);
+  vic_setup_irqs();
+  vic_enable_irq(UART0_IRQ,&echo,&c);
+  core_enable_irqs();
   for (;;) {
-    uart_receive(UART0, &c);
-    uart_send(UART0, c);
+    core_halt();
   }
+
+  //vic_disable_irq(UART0_IRQ);
+  //core_disable_irqs();
 }
 
 void panic() {

@@ -17,6 +17,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "isr.h"
+#include "isr-mmio.h"
 
 typedef uint8_t bool_t;
 

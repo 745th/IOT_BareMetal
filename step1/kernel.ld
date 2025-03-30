@@ -21,6 +21,7 @@ SECTIONS
   .text : { 
      build/exception.o(.text) 
      build/startup.o(.text)
+     build/irq.o(.text)
   }
   . = 0x100;
   .text : { 
@@ -59,4 +60,8 @@ SECTIONS
   . = ALIGN(8);
   . = . + 0x1000; /* 4KB of stack memory */
   stack_top = .;
+
+  . = ALIGN(8);
+  . = . + 0x1000; /* 4KB of stack memory */
+  irq_stack_top = .;
 }
