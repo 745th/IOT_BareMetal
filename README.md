@@ -115,3 +115,9 @@ En réalité après une nuit de sommeil j'ai réalisé de ne pas avoir appeler _
 
 
 Une autre erreur était de clear le VIC après une interuption en utilisant ce registre : VICINTCLEAR. Du coup plus d'interuption se produit.
+
+## Charactères spéciaux
+
+Utiliser les flèches donne le résultat attendu, soit bouger le curseur à travers la console. Il se trouve qu'on peut absolument tous modifier dans la console, ce qui est normal puisqu'on demande bêtement a la console d'écrire sans contraintes.
+
+En envoyant des octets avec un prefix de \0 il est possible d'écrire les caractères en utf-8. Donc dans ce code si on tape la lettre p, l'écran est clear car dans le cas de celle ci le code envoie "\033[H\033[J". (voir uart_receive)
