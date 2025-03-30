@@ -59,8 +59,14 @@ void uart_disable(uint32_t uartno) {
 void uart_receive(uint8_t uartno, char *pt) {
   struct uart*uart = &uarts[uartno];
   while((mmio_read32(uart->bar,UART_FR) & UART_FR_REMPTY));
-  *pt = mmio_read32(uart->bar,UART_DR);
-  //panic();
+  if(mmio_read32(uart->bar,UART_DR) == 'p')
+  {
+    uart_send_string(uartno,"\033[H\033[J");
+  }
+  else
+  {
+    *pt = mmio_read32(uart->bar,UART_DR);
+  }
 }
 
 /**
