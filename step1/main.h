@@ -79,4 +79,6 @@ void mmio_clear(void* bar, uint32_t offset, uint32_t bits) {
   *((uint32_t*)(bar+offset)) = value;
 }
 
+void process_ring();
+
 #endif /* MAIN_H_ */

@@ -37,6 +37,11 @@ void uarts_init() {
   uart_init(UART2,UART2_BASE_ADDRESS);
 }
 
+struct uart* getuart(int uartno)
+{
+  return &uarts[uartno];
+}
+
 void uart_enable(uint32_t uartno) {
   struct uart* uart = &uarts[uartno];
   
@@ -54,15 +59,22 @@ void uart_disable(uint32_t uartno) {
 
 void uart_receive(uint8_t uartno, char *pt) {
   struct uart*uart = &uarts[uartno];
-  while((mmio_read32(uart->bar,UART_FR) & UART_FR_REMPTY));
-  if(mmio_read32(uart->bar,UART_DR) == 'p')
+  if(!(mmio_read32(uart->bar,UART_FR) & UART_FR_REMPTY))
   {
-    uart_send_string(uartno,"\033[H\033[J");
+    if(mmio_read32(uart->bar,UART_DR) == 'p')
+    {
+      uart_send_string(uartno,"\033[H\033[J");
+    }
+    else
+    {
+      *pt = mmio_read32(uart->bar,UART_DR);
+    }
   }
   else
   {
-    *pt = mmio_read32(uart->bar,UART_DR);
+    *pt=0;
   }
+    
 }
 
 /**
@@ -71,8 +83,8 @@ void uart_receive(uint8_t uartno, char *pt) {
  */
 void uart_send(uint8_t uartno, char s) {
   struct uart* uart = &uarts[uartno];
-  while((mmio_read32(uart->bar,UART_FR) & UART_FR_TFUL));
-  mmio_write32(uart->bar,UART_DR, s);
+  if(!(mmio_read32(uart->bar,UART_FR) & UART_FR_TFUL))
+    mmio_write32(uart->bar,UART_DR, s);
   //panic();
 }
 

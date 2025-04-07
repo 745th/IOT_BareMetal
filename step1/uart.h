@@ -81,6 +81,8 @@ struct uart {
     struct data data;
 };
 
+struct uart* getuart(int uartno);
+
 bool_t ring_empty(struct data*);
 
 bool_t ring_full(struct data*);

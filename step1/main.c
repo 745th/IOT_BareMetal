@@ -17,6 +17,9 @@
 extern uint32_t irq_stack_top;
 extern uint32_t stack_top;
 
+char line[MAX_CHARS];
+uint32_t nchars = 0;
+
 void check_stacks() {
   void *memsize = (void*)MEMORY;
   void *addr;
@@ -29,10 +32,14 @@ void check_stacks() {
     panic();
 }
 
-void echo(uint32_t i,void* c)
+void echo(uint32_t i,void* cc)
 {
-  uart_receive(UART0, (char*)c);
-  uart_send(UART0, *((char*)c));
+  char c;
+  uart_receive(UART0,&c);
+  while (c) {
+    ring_put(&getuart(UART0)->data,c);
+    uart_receive(UART0,&c);
+  }
 }
 
 /**
@@ -47,13 +54,32 @@ void _start(void) {
   uart_enable(UART0);
   vic_setup_irqs();
   vic_enable_irq(UART0_IRQ,&echo,&c);
-  core_enable_irqs();
+  
   for (;;) {
-    core_halt();
+    process_ring(&getuart(UART0)->data);
+    core_disable_irqs();
+    if (ring_empty(&getuart(UART0)->data))
+    {
+      core_enable_irqs();
+      core_halt();
+    }
+      
   }
 
   //vic_disable_irq(UART0_IRQ);
   //core_disable_irqs();
+}
+
+
+void process_ring() {
+  uint8_t code;
+  while (!ring_empty(&getuart(UART0)->data)) {
+    code = ring_get(&getuart(UART0)->data);
+    line[nchars++]=(char)code;
+    uart_send(UART0, code);
+    if (code == '\n') 
+      nchars = 0;
+  }
 }
 
 void panic() {
