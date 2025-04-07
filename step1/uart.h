@@ -24,6 +24,7 @@
 #define UART1 1
 #define UART2 2
 
+
 /*
  * Receives a one-byte character, which is compatible
  * with ASCII encoding. This function blocks, spinning,
@@ -66,5 +67,26 @@ void uart_enable(uint32_t uartno);
  * Nothing to do on QEMU until we use interrupts...
  */
 void uart_disable(uint32_t uartno);
+
+struct data {
+    uint32_t uartno;
+    char buffer[MAX_CHARS];
+    uint32_t head,tail;
+    bool_t processing;
+};
+
+struct uart {
+    uint32_t uartno;
+    void* bar;
+    struct data data;
+};
+
+bool_t ring_empty(struct data*);
+
+bool_t ring_full(struct data*);
+
+void ring_put(struct data*, uint8_t bits);
+
+uint8_t ring_get(struct data*);
 
 #endif /* UART_H_ */

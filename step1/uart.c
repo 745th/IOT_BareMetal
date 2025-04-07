@@ -16,19 +16,15 @@
 #include "uart.h"
 #include "uart-mmio.h"
 
-struct uart {
-  uint8_t uartno; // the UART numéro
-  void* bar;      // base address register for this UART
-};
-
-static
 struct uart uarts[NUARTS];
 
-static
+
 void uart_init(uint32_t uartno, void* bar) {
-  struct uart*uart = &uarts[uartno];
+  struct uart* uart = &uarts[uartno];
   uart->uartno = uartno;
   uart->bar = bar;
+  uart->data.tail =0;
+  uart->data.head =0;
   // no hardware initialization necessary
   // when running on QEMU, the UARTs are
   // already initialized, as long as we
@@ -42,7 +38,7 @@ void uarts_init() {
 }
 
 void uart_enable(uint32_t uartno) {
-  struct uart*uart = &uarts[uartno];
+  struct uart* uart = &uarts[uartno];
   
   //enable RX interrupt
   mmio_write32(uart->bar,0x038,UART_FR_REMPTY);
@@ -89,5 +85,28 @@ void uart_send_string(uint8_t uartno, const char *s) {
     uart_send(uartno, *s);
     s++;
   }
+}
+
+bool_t ring_empty(struct data* data) {
+  return (data->head==data->tail);
+}
+
+bool_t ring_full(struct data* data) {
+  int next = (data->head + 1) % MAX_CHARS;
+  return (next==data->tail);
+}
+
+void ring_put(struct data* data, uint8_t bits) {
+  uint32_t next = (data->head + 1) % MAX_CHARS;
+  data->buffer[data->head] = bits;
+  data->head = next;
+}
+
+uint8_t ring_get(struct data* data) {
+  uint8_t bits;
+  uint32_t next = (data->tail + 1) % MAX_CHARS;
+  bits = data->buffer[data->tail];
+  data->tail = next;
+  return bits;
 }
 

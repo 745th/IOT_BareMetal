@@ -20,6 +20,8 @@
 #include "isr.h"
 #include "isr-mmio.h"
 
+#define MAX_CHARS 512
+
 typedef uint8_t bool_t;
 
 void panic();
