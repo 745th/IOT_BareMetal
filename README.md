@@ -121,3 +121,31 @@ Une autre erreur était de clear le VIC après une interuption en utilisant ce r
 Utiliser les flèches donne le résultat attendu, soit bouger le curseur à travers la console. Il se trouve qu'on peut absolument tous modifier dans la console, ce qui est normal puisqu'on demande bêtement a la console d'écrire sans contraintes.
 
 En envoyant des octets avec un prefix de \0 il est possible d'écrire les caractères en utf-8. Donc dans ce code si on tape la lettre p, l'écran est clear car dans le cas de celle ci le code envoie "\033[H\033[J". (voir uart_receive)
+
+# Lesson3 : Race condition
+
+Actuellement on récupère et on affiche de simple caractère, mais dans une situation on l'on souhaite les traiter, il faut absolument dissocier le traitement et la reception.
+
+Car en plein traitement d'une donnée il se peut qu'une autre arrive et bien entendu écrase la valeur entrain d'être traiter. C'est la concurence.
+
+Dans ce cours la gestion de cette concurence est gérer de 2 manières différentes : l'une avec un buffer circulaire et la deuxième avec des listeners.
+
+## Buffer circulaire
+
+Le principe est simple : bufferiser les données non traiter. Donc lorsqu'on recepionne une donnée, on la stock directement dans notre buffer. Le traitement ce fait en dehors de cette interuption pour éviter d'en bloquer une autre. Cependant cette solution donne juste du temps supplémentaire pour le traitement et si celui-ci n'est pas suffisament rapide, alors le buffer sature.
+
+Pour utiliser cette solution il faut alors créer un buffer suffisament grand pour éviter un overflow.
+
+Pendant la reception on "attribue" un indice à l'octet reçu pour indiquer que cette emplacement est à traiter. Mais on doit égalemet indiquer jusque où les octets sont traiter, donc on aura 2 indice indiquant la zone qui n'est pas traité.
+
+## Listener
+(non réussi)
+
+L'usage des listeners ne change pas beaucoup de chose à la méthode précedente. On utilise toujours le buffer circulaire.
+
+La grande différence est que l'on ajoute la phase de traitement au niveau de l'envoie des octets.
+On le lie au handler de l'interuptuion d'envoie des données sois TX. Cette interuption peut paraître bizarre car elle ne fonctionne pas de la même manière que la réception.
+
+Cette interuption est déclencher lorsque le buffer d'envoi est considéré comme vide. L'interet serait de l'utiliser pour garantir l'envoie de donnée, en apppliquant un timer par exemple en début de remplissage du buffer.
+
+
