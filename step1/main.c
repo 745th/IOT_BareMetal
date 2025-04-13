@@ -20,6 +20,8 @@ extern uint32_t stack_top;
 char line[MAX_CHARS];
 uint32_t nchars = 0;
 
+
+
 void check_stacks() {
   void *memsize = (void*)MEMORY;
   void *addr;
@@ -33,14 +35,16 @@ void check_stacks() {
 }
 
 void echo(uint32_t i,void* cc)
-{
-  char c;
-  uart_receive(UART0,&c);
-  while (c) {
-    ring_put(&getuart(UART0)->data,c);
-    uart_receive(UART0,&c);
-  }
+{  
+  uart_receive(UART0,cc);  
+  event_reset();
 }
+
+void write_listener(void* cc)
+{
+  uart_send(UART0,*(char*)cc);
+}
+
 
 /**
  * This is the C entry point,
@@ -50,36 +54,32 @@ void echo(uint32_t i,void* cc)
 void _start(void) {
   char c;
   check_stacks();
-  uarts_init();
+  uarts_init(UART0);
   uart_enable(UART0);
   vic_setup_irqs();
-  vic_enable_irq(UART0_IRQ,&echo,&c);
+  event_init();  
+  vic_enable_irq(UART0_IRQ,echo,&c);
+  event_put(write_listener);
   
   for (;;) {
-    process_ring(&getuart(UART0)->data);
+
     core_disable_irqs();
-    if (ring_empty(&getuart(UART0)->data))
+    struct event* ev = event_pop();
+    core_enable_irqs();
+
+    if(ev->handler != 0)
     {
-      core_enable_irqs();
+      char cpy = c;
+      ev->handler(&cpy);
+    }
+    else
+    {
       core_halt();
     }
-      
   }
 
   //vic_disable_irq(UART0_IRQ);
   //core_disable_irqs();
-}
-
-
-void process_ring() {
-  uint8_t code;
-  while (!ring_empty(&getuart(UART0)->data)) {
-    code = ring_get(&getuart(UART0)->data);
-    line[nchars++]=(char)code;
-    uart_send(UART0, code);
-    if (code == '\n') 
-      nchars = 0;
-  }
 }
 
 void panic() {

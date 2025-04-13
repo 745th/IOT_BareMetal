@@ -83,7 +83,7 @@ void vic_setup_irqs();
  * VIC enables the given interrupt,
  * like UART0_IRQ
  */
-void vic_enable_irq(uint32_t irq,void(*callback)(uint32_t,void*),void*cookie);
+void vic_enable_irq(uint32_t irq,void (*callback)(uint32_t, void*),void* cookie);
 
 /*
  * VIC disable the given interrupt,

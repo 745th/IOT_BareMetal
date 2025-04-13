@@ -12,8 +12,11 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 #ifndef UART_H_
 #define UART_H_
+
+
 
 /*
  * Defines the number of available UARTs
@@ -24,6 +27,9 @@
 #define UART1 1
 #define UART2 2
 
+#define MAX_CHARS 512
+#define MAX_EVENTS 512
+typedef uint8_t bool_t;
 
 /*
  * Receives a one-byte character, which is compatible
@@ -68,27 +74,30 @@ void uart_enable(uint32_t uartno);
  */
 void uart_disable(uint32_t uartno);
 
-struct data {
-    uint32_t uartno;
-    char buffer[MAX_CHARS];
+
+
+struct event {
+    void (*handler)(void* arg);
+};
+
+struct queue {
+    struct event list[MAX_EVENTS];
     uint32_t head,tail;
-    bool_t processing;
 };
 
 struct uart {
     uint32_t uartno;
     void* bar;
-    struct data data;
 };
 
 struct uart* getuart(int uartno);
 
-bool_t ring_empty(struct data*);
+void event_put(void (*handler)(void* arg));
 
-bool_t ring_full(struct data*);
+struct event* event_pop();
 
-void ring_put(struct data*, uint8_t bits);
+void event_init();
 
-uint8_t ring_get(struct data*);
+void event_reset();
 
 #endif /* UART_H_ */

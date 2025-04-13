@@ -148,4 +148,14 @@ On le lie au handler de l'interuptuion d'envoie des données sois TX. Cette inte
 
 Cette interuption est déclencher lorsque le buffer d'envoi est considéré comme vide. L'interet serait de l'utiliser pour garantir l'envoie de donnée, en apppliquant un timer par exemple en début de remplissage du buffer.
 
+## Events
 
+Le principe des events est de généraliser/ abstraire l'utilisation des interuption coté software.
+
+Il faut considérer que le code présent dans isr et uart ne sois pas disponible par l'utilisateur.
+
+Dans ce cas nous avons un buffer circulaire stockant les handlers à appeler. Ces handlers possèdent tous un paramètre, représentant le caractère reçu depuis l'uart. Mais puisque toutes ces fonctions sont lié à la même interuption, une variable global est lié a l'interuption lors de l'initialisation.
+
+Lorsqu'une interuption ce produit la variable "tail" est reset pour indiqué que les handlers doivent être rexecuté. Un potentiel problème est que les dernier handler lié ne pourait jaais être exécuté.
+
+Les interuptions sont désactivé après chaque even_pop avant l'execution d'un handler. La raison vient d'un potentiel problème lorsque l'on touche à la variable tail pendant la reception d'un caractère.

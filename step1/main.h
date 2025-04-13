@@ -16,11 +16,13 @@
 #define MAIN_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include "isr.h"
+#include "uart.h"
 #include "isr-mmio.h"
 
-#define MAX_CHARS 512
+
 
 typedef uint8_t bool_t;
 
@@ -79,6 +81,6 @@ void mmio_clear(void* bar, uint32_t offset, uint32_t bits) {
   *((uint32_t*)(bar+offset)) = value;
 }
 
-void process_ring();
+void write_listener(void* cc);
 
 #endif /* MAIN_H_ */

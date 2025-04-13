@@ -88,9 +88,8 @@ void vic_setup_irqs() {
  * Enables the given interrupt at the VIC level.
  */
 void vic_enable_irq(uint32_t irq, void (*callback)(uint32_t, void*), void *cookie) {
-  handlers[irq].callback = callback;
   handlers[irq].cookie = cookie;
-
+  handlers[irq].callback = callback;
   mmio_write32((void*)VIC_BASE_ADDR, VICINTENABLE, (1 << irq));
 }
 
